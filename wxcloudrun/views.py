@@ -1,66 +1,56 @@
+# -*- coding:utf-8 -*-
+
+from flask import Flask, render_template, request
+
+import json
+import requests
+
 from datetime import datetime
-from flask import render_template, request
-from run import app
-from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter, update_counterbyid
-from wxcloudrun.model import Counters
-from wxcloudrun.response import make_succ_empty_response, make_succ_response, make_err_response
+import time
 
 
-@app.route('/')
+openaiurl = 'https://service-0l5yf4x2-1251744023.sg.apigw.tencentcs.com/v1/chat/completions'
+key = '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'
+
+app = Flask(__name__)
+
+@app.route("/")
 def index():
-    """
-    :return: 返回index页面
-    """
-    return render_template('index.html')
+    return render_template("index.html")
 
+@app.route("/generate", methods=["POST"])
 
-@app.route('/api/count', methods=['POST'])
-def count():
-    """
-    :return:计数结果/清除结果
-    """
+def generate():
+    # 获取用户输入的信息
+    last_name = request.form.get("last_name")
+    first_name = request.form.get("first_name")
+    birth_year = request.form.get("birth_year")
+    birth_month = request.form.get("birth_month")
+    birth_day = request.form.get("birth_day")
+    birth_hour = request.form.get("birth_hour")
+    gender = request.form.get("gender")
+    prompt = f"请您做我的算命助手，我给你一份资料，你帮我用中国传统文化（周易、八字、五行、命理、星座、属相）进行测算，每一项给出不低于30字的内容，资料如下：{last_name}{first_name}({gender})出生于{birth_year}年{birth_month}月{birth_day}日{birth_hour}时。只要按要求回复我，没有指令的情况下不要解释任何内容。"
+#    prompt = request.form.get("prompt") # 获取用户输入的文本
 
-    # 获取请求体参数
-    params = request.get_json()
+    data  = {
+            "messages": [{"role": "user", "content": prompt}],
+            "model": "gpt-3.5-turbo",
+           }    
+    headers = {"Authorization": "Bearer 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","Content-Type": "application/json; charset=UTF-8"}
+    print(data )
+    data_json=json.dumps(data)
+    print(type(data_json ))
+    
+    rsp = requests.post(openaiurl,  headers=headers,data=data_json)
+    print(rsp)
+    rsp_data = rsp.json()
+    message_content = rsp_data["choices"][0]["message"]["content"]
+    print(rsp.status_code)
+    print(rsp_data)
+    print (rsp_data)
+    #ad_list = rsp_data["data"]["list"] 
+    
+    return message_content
+    
 
-    # 检查action参数
-    if 'action' not in params:
-        return make_err_response('缺少action参数')
-
-    # 按照不同的action的值，进行不同的操作
-    action = params['action']
-
-    # 执行自增操作
-    if action == 'inc':
-        counter = query_counterbyid(1)
-        if counter is None:
-            counter = Counters()
-            counter.id = 1
-            counter.count = 1
-            counter.created_at = datetime.now()
-            counter.updated_at = datetime.now()
-            insert_counter(counter)
-        else:
-            counter.id = 1
-            counter.count += 1
-            counter.updated_at = datetime.now()
-            update_counterbyid(counter)
-        return make_succ_response(counter.count)
-
-    # 执行清0操作
-    elif action == 'clear':
-        delete_counterbyid(1)
-        return make_succ_empty_response()
-
-    # action参数错误
-    else:
-        return make_err_response('action参数错误')
-
-
-@app.route('/api/count', methods=['GET'])
-def get_count():
-    """
-    :return: 计数的值
-    """
-    counter = Counters.query.filter(Counters.id == 1).first()
-    return make_succ_response(0) if counter is None else make_succ_response(counter.count)
+    
