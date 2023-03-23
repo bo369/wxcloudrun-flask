@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>算命GPT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        header {
+            background-color: #f2f2f2;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 12px 24px;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        input[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+        
+        #response {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 20px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>算命GPT</h1>
+    </header>
+    <main>
+        <form method="POST" action="/generate">
+            <label for="last_name">姓氏:</label>
+<input type="text" id="last_name" name="last_name">
+<label for="first_name">名字:</label>
+<input type="text" id="first_name" name="first_name">
+<label for="birth_year">出生年份:</label>
+<input type="text" id="birth_year" name="birth_year" placeholder="例如: 1990">
+<label for="birth_month">出生月份:</label>
+<input type="text" id="birth_month" name="birth_month" placeholder="例如: 1">
+<label for="birth_day">出生日期:</label>
+<input type="text" id="birth_day" name="birth_day" placeholder="例如: 1">
+<label for="birth_hour">出生时辰:</label>
+<input type="text" id="birth_hour" name="birth_hour" placeholder="例如: 子时">
+<label for="gender">性别:</label>
+<select id="gender" name="gender">
+<option value="男">男</option>
+<option value="女">女</option>
+</select>
+            <input type="submit" value="Generate">
+        </form>
+        <div id="response"></div>
+    </main>
+    <script src="https://lib.baomitu.com/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+        $(function() {
+            $('form').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: '/generate',
+                    data: $('form').serialize(),
+                    success: function(response) {
+                        $('#response').html('<p>' + response + '</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
